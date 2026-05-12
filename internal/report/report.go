@@ -1,3 +1,17 @@
+// Copyright 2025 Roma Hlushko
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package report
 
 import (
@@ -39,6 +53,35 @@ type Sections struct {
 	Notes         bool
 }
 
+func buildSessionEntries(sessions []domain.MeasurementSession) []SessionEntry {
+	entries := make([]SessionEntry, 0, len(sessions))
+	for _, s := range sessions {
+		entries = append(entries, SessionEntry{
+			MeasurementSession: s,
+			Average:            domain.ComputeSessionAverage(s.Readings),
+		})
+	}
+	return entries
+}
+
+func buildReadingEntries(sessions []domain.MeasurementSession) []ReadingEntry {
+	var entries []ReadingEntry
+	for _, s := range sessions {
+		for _, rd := range s.Readings {
+			entries = append(entries, ReadingEntry{
+				Date:      s.MeasuredAt.Format("2006-01-02"),
+				Time:      s.MeasuredAt.Format("15:04"),
+				Period:    string(s.Period),
+				Attempt:   rd.ReadingNo,
+				Systolic:  rd.Systolic,
+				Diastolic: rd.Diastolic,
+				Pulse:     rd.Pulse,
+			})
+		}
+	}
+	return entries
+}
+
 func Generate(sessions []domain.MeasurementSession, patient, device, from, to, generated string, sec Sections) Report {
 	r := Report{
 		From:      from,
@@ -73,30 +116,11 @@ func Generate(sessions []domain.MeasurementSession, patient, device, from, to, g
 	}
 
 	if sec.Sessions {
-		entries := make([]SessionEntry, 0, len(sessions))
-		for _, s := range sessions {
-			entries = append(entries, SessionEntry{
-				MeasurementSession: s,
-				Average:            domain.ComputeSessionAverage(s.Readings),
-			})
-		}
-		r.Sessions = entries
+		r.Sessions = buildSessionEntries(sessions)
 	}
 
 	if sec.Readings {
-		for _, s := range sessions {
-			for _, rd := range s.Readings {
-				r.Readings = append(r.Readings, ReadingEntry{
-					Date:      s.MeasuredAt.Format("2006-01-02"),
-					Time:      s.MeasuredAt.Format("15:04"),
-					Period:    string(s.Period),
-					Attempt:   rd.ReadingNo,
-					Systolic:  rd.Systolic,
-					Diastolic: rd.Diastolic,
-					Pulse:     rd.Pulse,
-				})
-			}
-		}
+		r.Readings = buildReadingEntries(sessions)
 	}
 
 	return r

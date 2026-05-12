@@ -4,8 +4,9 @@ run:
   go: "1.26.3"
 
 output:
-  sort-results: true
-  print-issued-lines: false
+  formats:
+    text:
+      print-issued-lines: false
 
 linters:
   enable:
@@ -25,22 +26,21 @@ linters:
     - testifylint
     - unconvert
     - usestdlibvars
-
-linters-settings:
-  govet:
-    enable:
-      - nilness
-      - reflectvaluecompare
-      - sortslice
-      - unusedwrite
-      - defers
-      - atomic
-      - nilfunc
-      - printf
-      - tests
-  revive:
-    rules:
-      - name: exported
-        disabled: true
-      - name: package-comments
-        disabled: true
+  settings:
+    govet:
+      enable:
+        - nilness
+        - reflectvaluecompare
+        - sortslice
+        - unusedwrite
+        - defers
+        - atomic
+        - nilfunc
+        - printf
+        - tests
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true

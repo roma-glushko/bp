@@ -1,3 +1,17 @@
+// Copyright 2025 Roma Hlushko
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package handlers
 
 import (
@@ -12,6 +26,43 @@ import (
 
 type ReportHandler struct {
 	Store storage.Store
+}
+
+func parseSections(param string) report.Sections {
+	if param == "" {
+		return report.Sections{
+			Summary:       true,
+			MonthAverages: true,
+			WeekAverages:  true,
+			DayAverages:   true,
+			Sessions:      true,
+			Readings:      true,
+			Notes:         true,
+		}
+	}
+
+	sec := report.Sections{}
+
+	for _, s := range strings.Split(param, ",") {
+		switch strings.TrimSpace(s) {
+		case "summary":
+			sec.Summary = true
+		case "monthly":
+			sec.MonthAverages = true
+		case "weekly":
+			sec.WeekAverages = true
+		case "daily":
+			sec.DayAverages = true
+		case "sessions":
+			sec.Sessions = true
+		case "readings":
+			sec.Readings = true
+		case "notes":
+			sec.Notes = true
+		}
+	}
+
+	return sec
 }
 
 func (h *ReportHandler) Preview(w http.ResponseWriter, r *http.Request) {
@@ -35,38 +86,7 @@ func (h *ReportHandler) Preview(w http.ResponseWriter, r *http.Request) {
 		to = t
 	}
 
-	sectionsParam := r.URL.Query().Get("sections")
-	sec := report.Sections{
-		Summary:       true,
-		MonthAverages: true,
-		WeekAverages:  true,
-		DayAverages:   true,
-		Sessions:      true,
-		Readings:      true,
-		Notes:         true,
-	}
-
-	if sectionsParam != "" {
-		sec = report.Sections{}
-		for _, s := range strings.Split(sectionsParam, ",") {
-			switch strings.TrimSpace(s) {
-			case "summary":
-				sec.Summary = true
-			case "monthly":
-				sec.MonthAverages = true
-			case "weekly":
-				sec.WeekAverages = true
-			case "daily":
-				sec.DayAverages = true
-			case "sessions":
-				sec.Sessions = true
-			case "readings":
-				sec.Readings = true
-			case "notes":
-				sec.Notes = true
-			}
-		}
-	}
+	sec := parseSections(r.URL.Query().Get("sections"))
 
 	sessions, err := h.Store.ListSessions(from, to)
 	if err != nil {
