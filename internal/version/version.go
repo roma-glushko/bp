@@ -1,0 +1,22 @@
+package version
+
+import (
+	"fmt"
+	"runtime"
+)
+
+const AppName = "bp"
+
+var Version = "dev"
+
+// GitCommit is the commit hash of the current version.
+var GitCommit = "unknown"
+
+// BuildDate is the date when the binary was built.
+var BuildDate = "unknown"
+
+var FullVersion string
+
+func init() {
+	FullVersion = fmt.Sprintf("%s (commit: %s, %s, runtime: %s)", Version, GitCommit, BuildDate, runtime.Version())
+}

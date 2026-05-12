@@ -1,2 +1,67 @@
 # bp
+
 A blood pressure journal
+
+## Installation
+
+### From Source
+
+```bash
+go install github.com/roma-glushko/bp@latest
+```
+
+### From Release
+
+Download the latest binary from the [Releases](https://github.com/roma-glushko/bp/releases) page.
+
+### Docker
+
+```bash
+docker pull roma-glushko/bp:latest
+```
+
+## Usage
+
+```bash
+bp --help
+```
+
+## Development
+
+### Prerequisites
+
+- [Go](https://go.dev/) 1.26.3+
+- [Make](https://www.gnu.org/software/make/)
+- [Docker](https://www.docker.com/) (optional, for container builds)
+
+### Getting Started
+
+```bash
+# Install development tools
+make install-tools
+
+# Run the application
+make run
+
+# Run with live reload
+make dev
+```
+
+### Common Commands
+
+```bash
+make lint          # Lint and format source code
+make test          # Run tests with race detection
+make build         # Build binary
+make image         # Build Docker image
+make gen           # Run code generation
+make help          # Show all available commands
+```
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+## License
+
+[Apache-2.0](LICENSE) - 2025-Present, Roma Hlushko
