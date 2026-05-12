@@ -4,6 +4,7 @@
 
   import Dashboard from './routes/Dashboard.svelte'
   import NewMeasurement from './routes/NewMeasurement.svelte'
+  import EditMeasurement from './routes/EditMeasurement.svelte'
   import History from './routes/History.svelte'
   import Reports from './routes/Reports.svelte'
   import Settings from './routes/Settings.svelte'
@@ -11,6 +12,7 @@
   const routes = {
     '/': Dashboard,
     '/measurements/new': NewMeasurement,
+    '/measurements/:id/edit': EditMeasurement,
     '/history': History,
     '/reports': Reports,
     '/settings': Settings,

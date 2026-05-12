@@ -22,7 +22,7 @@ func TestDataDirEnvOverride(t *testing.T) {
 	dir, err := DataDir()
 
 	require.NoError(t, err)
-	assert.Equal(t, "/tmp/bp-test", dir)
+	require.Equal(t, "/tmp/bp-test", dir)
 }
 
 func TestEnsureDataDir(t *testing.T) {
