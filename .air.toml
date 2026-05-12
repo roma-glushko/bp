@@ -3,10 +3,10 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-args_bin = ["hey"]
+args_bin = ["serve", "--no-open"]
 bin = "./dist/bp"
 cmd = "go build -o ./dist/bp"
-exclude_dir = ["tmp", "dist", "vendor", "testdata", ".static"]
+exclude_dir = ["tmp", "dist", "vendor", "testdata", ".static", "frontend/node_modules", "frontend/dist"]
 exclude_file = []
 exclude_regex = ["_test.go"]
 exclude_unchanged = false

@@ -1,5 +1,13 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.26.3-alpine as build
+FROM node:22-alpine AS frontend
+
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM golang:1.26.3-alpine AS build
 
 ARG VERSION
 ARG COMMIT
@@ -10,6 +18,7 @@ ENV GOOS=linux
 WORKDIR /build
 
 COPY . /build/
+COPY --from=frontend /frontend/dist /build/frontend/dist
 RUN go mod download
 
 RUN COMMIT_SHA=${COMMIT} && \
@@ -20,9 +29,9 @@ RUN COMMIT_SHA=${COMMIT} && \
     -X github.com/roma-glushko/bp/internal/version.BuildDate=${BUILD_DATE_FINAL}" \
     -o /build/dist/bp
 
-FROM gcr.io/distroless/static-debian12:nonroot as release
+FROM gcr.io/distroless/static-debian12:nonroot AS release
 
 WORKDIR /bin
 COPY --from=build /build/dist/bp /bin/
 
-ENTRYPOINT ["/bin/bp", "hello"]
+ENTRYPOINT ["/bin/bp", "serve", "--no-open"]

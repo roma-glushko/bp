@@ -3,6 +3,8 @@ project_name: bp
 
 before:
   hooks:
+    - cmd: npm ci --prefix frontend
+    - cmd: npm run build --prefix frontend
     - go generate
 
 builds:

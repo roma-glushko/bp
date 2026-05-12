@@ -39,14 +39,27 @@ lint: install-tools ## Lint the source code
 
 .PHONY: run
 run: ## Run the application
-	@go run -ldflags $(LDFLAGS_COMMON) main.go -- $(filter-out $@,$(MAKECMDGOALS))
+	@go run -ldflags $(LDFLAGS_COMMON) . serve $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: dev
 dev: install-tools ## Run with live reload (air)
 	@$(BIN_DIR)/air
 
+.PHONY: frontend-install
+frontend-install: ## Install frontend dependencies
+	@cd frontend && npm install
+
+.PHONY: frontend-build
+frontend-build: ## Build frontend assets
+	@echo "🔨Building frontend.."
+	@cd frontend && npm run build
+
+.PHONY: frontend-dev
+frontend-dev: ## Run frontend dev server
+	@cd frontend && npm run dev
+
 .PHONY: build
-build: ## Build Frens
+build: frontend-build ## Build the application
 	@echo "🔨Building binary.."
 	@echo "Version: $(VERSION)"
 	@echo "Commit: $(COMMIT)"
@@ -66,8 +79,8 @@ test: ## Run tests
 	@go test -v -count=1 -race -shuffle=on -coverprofile=coverage.txt ./...
 
 copyright: ## Apply copyrights to all files
-    @echo "🧹 Applying license headers"
-    @docker run  --rm -v $(CURDIR):/github/workspace ghcr.io/apache/skywalking-eyes/license-eye:4021a396bf07b2136f97c12708476418a8157d72 -v info -c .licenserc.yaml header fix
+	@echo "🧹 Applying license headers"
+	@docker run  --rm -v $(CURDIR):/github/workspace ghcr.io/apache/skywalking-eyes/license-eye:4021a396bf07b2136f97c12708476418a8157d72 -v info -c .licenserc.yaml header fix
 
 license: copyright
 
@@ -99,4 +112,4 @@ image: ## Build docker image
 
 .PHONY: image-lint
 image-lint: ## Lint Dockerfile
-    @hadolint Dockerfile
+	@hadolint Dockerfile
