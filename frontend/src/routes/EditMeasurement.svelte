@@ -30,22 +30,22 @@
 
 {#if loading}
   <div class="flex justify-center py-12">
-    <p class="text-gray-500">Loading...</p>
+    <p class="text-gray-500 dark:text-gray-400">Loading...</p>
   </div>
 {:else if notFound}
   <div class="text-center py-12">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">Session Not Found</h1>
-    <p class="text-gray-500 mb-4">This measurement session doesn't exist.</p>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Session Not Found</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-4">This measurement session doesn't exist.</p>
     <a
       href="#/history"
-      class="text-teal-600 hover:text-teal-800 font-medium text-sm"
+      class="text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 font-medium text-sm"
     >
       Back to History
     </a>
   </div>
 {:else}
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Edit Measurement</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Edit Measurement</h1>
     <MeasurementForm
       initialData={session}
       onSubmit={handleSubmit}

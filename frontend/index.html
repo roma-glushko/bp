@@ -6,6 +6,14 @@
     <title>🩺 BP Journal</title>
   </head>
   <body>
+    <script>
+      (function() {
+        var t = localStorage.getItem('bp-theme');
+        if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>

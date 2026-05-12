@@ -35,6 +35,53 @@ type Summary struct {
 	LowestPulse  *int          `json:"lowest_pulse,omitempty"`
 }
 
+type readingExtremes struct {
+	count               int
+	highSys, lowSys     int
+	highDia, lowDia     int
+	highPulse, lowPulse *int
+}
+
+func (ext *readingExtremes) trackReading(r domain.Reading) {
+	ext.count++
+
+	if r.Systolic > ext.highSys {
+		ext.highSys = r.Systolic
+	}
+	if r.Systolic < ext.lowSys {
+		ext.lowSys = r.Systolic
+	}
+	if r.Diastolic > ext.highDia {
+		ext.highDia = r.Diastolic
+	}
+	if r.Diastolic < ext.lowDia {
+		ext.lowDia = r.Diastolic
+	}
+
+	if r.Pulse != nil {
+		if ext.highPulse == nil || *r.Pulse > *ext.highPulse {
+			v := *r.Pulse
+			ext.highPulse = &v
+		}
+		if ext.lowPulse == nil || *r.Pulse < *ext.lowPulse {
+			v := *r.Pulse
+			ext.lowPulse = &v
+		}
+	}
+}
+
+func computeReadingExtremes(sessions []domain.MeasurementSession) readingExtremes {
+	ext := readingExtremes{lowSys: 999, lowDia: 999}
+
+	for _, s := range sessions {
+		for _, r := range s.Readings {
+			ext.trackReading(r)
+		}
+	}
+
+	return ext
+}
+
 func ComputeSummary(sessions []domain.MeasurementSession) Summary {
 	if len(sessions) == 0 {
 		return Summary{}
@@ -43,11 +90,6 @@ func ComputeSummary(sessions []domain.MeasurementSession) Summary {
 	days := make(map[string]bool)
 	var allSys, allDia []decimal.Decimal
 	var allPulse []decimal.Decimal
-	var readingCount int
-
-	highSys, lowSys := 0, 999
-	highDia, lowDia := 0, 999
-	var highPulse, lowPulse *int
 
 	for _, s := range sessions {
 		days[s.MeasuredAt.Format("2006-01-02")] = true
@@ -57,53 +99,23 @@ func ComputeSummary(sessions []domain.MeasurementSession) Summary {
 		if avg.AvgPulse != nil {
 			allPulse = append(allPulse, *avg.AvgPulse)
 		}
-
-		for _, r := range s.Readings {
-			readingCount++
-
-			if r.Systolic > highSys {
-				highSys = r.Systolic
-			}
-
-			if r.Systolic < lowSys {
-				lowSys = r.Systolic
-			}
-
-			if r.Diastolic > highDia {
-				highDia = r.Diastolic
-			}
-
-			if r.Diastolic < lowDia {
-				lowDia = r.Diastolic
-			}
-
-			if r.Pulse != nil {
-				if highPulse == nil || *r.Pulse > *highPulse {
-					v := *r.Pulse
-					highPulse = &v
-				}
-				if lowPulse == nil || *r.Pulse < *lowPulse {
-					v := *r.Pulse
-					lowPulse = &v
-				}
-			}
-		}
 	}
 
+	ext := computeReadingExtremes(sessions)
 	morningAvg, eveningAvg := ComputePeriodAverages(sessions)
 
 	return Summary{
 		DaysMeasured: len(days),
 		SessionCount: len(sessions),
-		ReadingCount: readingCount,
+		ReadingCount: ext.count,
 		OverallAvg:   averageFromDecimals(allSys, allDia, allPulse),
 		MorningAvg:   morningAvg,
 		EveningAvg:   eveningAvg,
-		HighestSys:   highSys,
-		LowestSys:    lowSys,
-		HighestDia:   highDia,
-		LowestDia:    lowDia,
-		HighestPulse: highPulse,
-		LowestPulse:  lowPulse,
+		HighestSys:   ext.highSys,
+		LowestSys:    ext.lowSys,
+		HighestDia:   ext.highDia,
+		LowestDia:    ext.lowDia,
+		HighestPulse: ext.highPulse,
+		LowestPulse:  ext.lowPulse,
 	}
 }

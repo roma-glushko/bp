@@ -136,9 +136,9 @@
 
 <form onsubmit={e => { e.preventDefault(); handleSubmit() }} class="space-y-6">
   {#if errors.length > 0}
-    <div class="bg-red-50 border border-red-200 rounded-md p-4">
-      <p class="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
-      <ul class="text-sm text-red-600 list-disc list-inside">
+    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+      <p class="text-sm font-medium text-red-800 dark:text-red-300 mb-1">Please fix the following errors:</p>
+      <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside">
         {#each errors as err}
           <li>{err.field ? `${err.field}: ` : ''}{err.message}</li>
         {/each}
@@ -148,32 +148,32 @@
 
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+      <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
       <input
         id="date"
         type="date"
         bind:value={date}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
       />
     </div>
     <div>
-      <label for="time" class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+      <label for="time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time</label>
       <input
         id="time"
         type="time"
         bind:value={time}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
       />
     </div>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>
-      <label for="period" class="block text-sm font-medium text-gray-700 mb-1">Period</label>
+      <label for="period" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Period</label>
       <select
         id="period"
         bind:value={period}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
       >
         <option value="morning">Morning</option>
         <option value="evening">Evening</option>
@@ -181,22 +181,22 @@
       </select>
     </div>
     <div>
-      <label for="arm" class="block text-sm font-medium text-gray-700 mb-1">Arm</label>
+      <label for="arm" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Arm</label>
       <select
         id="arm"
         bind:value={arm}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
       >
         <option value="left">Left</option>
         <option value="right">Right</option>
       </select>
     </div>
     <div>
-      <label for="position" class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+      <label for="position" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
       <select
         id="position"
         bind:value={position}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
       >
         <option value="sitting">Sitting</option>
         <option value="lying">Lying</option>
@@ -207,10 +207,10 @@
 
   <div>
     <div class="flex items-center justify-between mb-2">
-      <span class="block text-sm font-medium text-gray-700">Readings</span>
+      <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Readings</span>
       <div class="flex items-center gap-3">
         {#if sessionAverage}
-          <span class="text-sm text-gray-500">
+          <span class="text-sm text-gray-500 dark:text-gray-400">
             Avg: {sessionAverage.avgSys}/{sessionAverage.avgDia}{sessionAverage.avgPulse != null ? `, pulse ${sessionAverage.avgPulse}` : ''}
           </span>
           <BPIndicator {...sessionAverage.indicator} />
@@ -243,7 +243,7 @@
       <button
         type="button"
         onclick={addReading}
-        class="mt-2 text-sm text-teal-600 hover:text-teal-800 font-medium"
+        class="mt-2 text-sm text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 font-medium"
       >
         + Add another reading
       </button>
@@ -251,13 +251,13 @@
   </div>
 
   <div>
-    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+    <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
     <textarea
       id="notes"
       bind:value={notes}
       rows="3"
       placeholder="Optional notes about this session..."
-      class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
     ></textarea>
   </div>
 

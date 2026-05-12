@@ -35,31 +35,32 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Field, e.Message)
 }
 
+func validateRange(field string, value, lo, hi int) *ValidationError {
+	if value < lo || value > hi {
+		return &ValidationError{
+			Field:   field,
+			Message: fmt.Sprintf("must be between %d and %d", lo, hi),
+		}
+	}
+	return nil
+}
+
 func ValidateReading(r Reading, index int) []ValidationError {
 	var errs []ValidationError
 
 	prefix := fmt.Sprintf("readings[%d]", index)
 
-	if r.Systolic < MinSystolic || r.Systolic > MaxSystolic {
-		errs = append(errs, ValidationError{
-			Field:   prefix + ".systolic",
-			Message: fmt.Sprintf("systolic must be between %d and %d", MinSystolic, MaxSystolic),
-		})
+	if err := validateRange(prefix+".systolic", r.Systolic, MinSystolic, MaxSystolic); err != nil {
+		errs = append(errs, *err)
 	}
 
-	if r.Diastolic < MinDiastolic || r.Diastolic > MaxDiastolic {
-		errs = append(errs, ValidationError{
-			Field:   prefix + ".diastolic",
-			Message: fmt.Sprintf("diastolic must be between %d and %d", MinDiastolic, MaxDiastolic),
-		})
+	if err := validateRange(prefix+".diastolic", r.Diastolic, MinDiastolic, MaxDiastolic); err != nil {
+		errs = append(errs, *err)
 	}
 
 	if r.Pulse != nil {
-		if *r.Pulse < MinPulse || *r.Pulse > MaxPulse {
-			errs = append(errs, ValidationError{
-				Field:   prefix + ".pulse",
-				Message: fmt.Sprintf("pulse must be between %d and %d", MinPulse, MaxPulse),
-			})
+		if err := validateRange(prefix+".pulse", *r.Pulse, MinPulse, MaxPulse); err != nil {
+			errs = append(errs, *err)
 		}
 	}
 

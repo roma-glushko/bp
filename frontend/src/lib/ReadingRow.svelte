@@ -19,7 +19,7 @@
 </script>
 
 <div class="flex items-center gap-2">
-  <span class="text-sm text-gray-500 w-6 text-right">{index + 1}</span>
+  <span class="text-sm text-gray-500 dark:text-gray-400 w-6 text-right">{index + 1}</span>
 
   <div class="flex-1 grid grid-cols-3 gap-2">
     <div>
@@ -29,8 +29,8 @@
         placeholder="SYS"
         min="70"
         max="250"
-        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
-          {sysInvalid || sysLessDia ? 'border-red-400 bg-red-50' : 'border-gray-300'}"
+        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400
+          {sysInvalid || sysLessDia ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600'}"
       />
     </div>
     <div>
@@ -40,8 +40,8 @@
         placeholder="DIA"
         min="40"
         max="150"
-        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
-          {diaInvalid || sysLessDia ? 'border-red-400 bg-red-50' : 'border-gray-300'}"
+        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400
+          {diaInvalid || sysLessDia ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600'}"
       />
     </div>
     <div>
@@ -51,8 +51,8 @@
         placeholder="Pulse"
         min="30"
         max="220"
-        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
-          {pulseInvalid ? 'border-red-400 bg-red-50' : 'border-gray-300'}"
+        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400
+          {pulseInvalid ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600'}"
       />
     </div>
   </div>
@@ -80,14 +80,14 @@
 </div>
 
 {#if sysInvalid}
-  <p class="text-xs text-red-500 ml-8 mt-0.5">Systolic must be between 70 and 250</p>
+  <p class="text-xs text-red-500 dark:text-red-400 ml-8 mt-0.5">Systolic must be between 70 and 250</p>
 {/if}
 {#if diaInvalid}
-  <p class="text-xs text-red-500 ml-8 mt-0.5">Diastolic must be between 40 and 150</p>
+  <p class="text-xs text-red-500 dark:text-red-400 ml-8 mt-0.5">Diastolic must be between 40 and 150</p>
 {/if}
 {#if pulseInvalid}
-  <p class="text-xs text-red-500 ml-8 mt-0.5">Pulse must be between 30 and 220</p>
+  <p class="text-xs text-red-500 dark:text-red-400 ml-8 mt-0.5">Pulse must be between 30 and 220</p>
 {/if}
 {#if sysLessDia}
-  <p class="text-xs text-red-500 ml-8 mt-0.5">Systolic must be greater than diastolic</p>
+  <p class="text-xs text-red-500 dark:text-red-400 ml-8 mt-0.5">Systolic must be greater than diastolic</p>
 {/if}

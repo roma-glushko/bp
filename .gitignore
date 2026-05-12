@@ -9,3 +9,5 @@ tmp
 
 frontend/node_modules
 frontend/dist
+
+coverage.txt
