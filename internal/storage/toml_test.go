@@ -1,9 +1,11 @@
 package storage
 
 import (
-	"errors"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/roma-glushko/bp/internal/domain"
 )
@@ -13,9 +15,7 @@ func intPtr(v int) *int { return &v }
 func newTestStore(t *testing.T) *TomlStore {
 	t.Helper()
 	store, err := NewTomlStore(t.TempDir())
-	if err != nil {
-		t.Fatalf("NewTomlStore() error: %v", err)
-	}
+	require.NoError(t, err)
 	return store
 }
 
@@ -37,110 +37,67 @@ func TestCreateAndGetSession(t *testing.T) {
 	store := newTestStore(t)
 	session := makeSession(time.Date(2026, 5, 7, 9, 0, 0, 0, time.UTC))
 
-	if err := store.CreateSession(&session); err != nil {
-		t.Fatalf("CreateSession() error: %v", err)
-	}
-
-	if session.ID == "" {
-		t.Fatal("session ID not set after create")
-	}
+	require.NoError(t, store.CreateSession(&session))
+	assert.NotEmpty(t, session.ID)
 
 	got, err := store.GetSession(session.ID)
-	if err != nil {
-		t.Fatalf("GetSession() error: %v", err)
-	}
+	require.NoError(t, err)
 
-	if got.ID != session.ID {
-		t.Errorf("ID = %q, want %q", got.ID, session.ID)
-	}
-	if got.Notes != "test session" {
-		t.Errorf("Notes = %q, want %q", got.Notes, "test session")
-	}
-	if len(got.Readings) != 2 {
-		t.Errorf("Readings count = %d, want 2", len(got.Readings))
-	}
-	if got.Readings[0].ID == "" {
-		t.Error("reading ID not set after create")
-	}
-	if got.Readings[0].ReadingNo != 1 {
-		t.Errorf("reading_no = %d, want 1", got.Readings[0].ReadingNo)
-	}
+	assert.Equal(t, session.ID, got.ID)
+	assert.Equal(t, "test session", got.Notes)
+	assert.Len(t, got.Readings, 2)
+	assert.NotEmpty(t, got.Readings[0].ID)
+	assert.Equal(t, 1, got.Readings[0].ReadingNo)
 }
 
 func TestGetSessionNotFound(t *testing.T) {
 	store := newTestStore(t)
 
 	_, err := store.GetSession("nonexistent-id")
-	if !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("GetSession() error = %v, want ErrSessionNotFound", err)
-	}
+	assert.ErrorIs(t, err, ErrSessionNotFound)
 }
 
 func TestUpdateSession(t *testing.T) {
 	store := newTestStore(t)
 	session := makeSession(time.Date(2026, 5, 7, 9, 0, 0, 0, time.UTC))
 
-	if err := store.CreateSession(&session); err != nil {
-		t.Fatalf("CreateSession() error: %v", err)
-	}
+	require.NoError(t, store.CreateSession(&session))
 
 	session.Notes = "updated notes"
 	session.Readings = append(session.Readings, domain.Reading{
 		Systolic: 115, Diastolic: 78, Pulse: intPtr(72),
 	})
 
-	if err := store.UpdateSession(&session); err != nil {
-		t.Fatalf("UpdateSession() error: %v", err)
-	}
+	require.NoError(t, store.UpdateSession(&session))
 
 	got, err := store.GetSession(session.ID)
-	if err != nil {
-		t.Fatalf("GetSession() error: %v", err)
-	}
+	require.NoError(t, err)
 
-	if got.Notes != "updated notes" {
-		t.Errorf("Notes = %q, want %q", got.Notes, "updated notes")
-	}
-	if len(got.Readings) != 3 {
-		t.Errorf("Readings count = %d, want 3", len(got.Readings))
-	}
+	assert.Equal(t, "updated notes", got.Notes)
+	assert.Len(t, got.Readings, 3)
 }
 
 func TestUpdateSessionCrossMonth(t *testing.T) {
 	store := newTestStore(t)
 	session := makeSession(time.Date(2026, 5, 31, 22, 0, 0, 0, time.UTC))
 
-	if err := store.CreateSession(&session); err != nil {
-		t.Fatalf("CreateSession() error: %v", err)
-	}
+	require.NoError(t, store.CreateSession(&session))
 
-	// Move to June
 	session.MeasuredAt = time.Date(2026, 6, 1, 8, 0, 0, 0, time.UTC)
-	if err := store.UpdateSession(&session); err != nil {
-		t.Fatalf("UpdateSession() error: %v", err)
-	}
+	require.NoError(t, store.UpdateSession(&session))
 
-	// Should be findable
 	got, err := store.GetSession(session.ID)
-	if err != nil {
-		t.Fatalf("GetSession() error: %v", err)
-	}
-	if !got.MeasuredAt.Equal(session.MeasuredAt) {
-		t.Errorf("MeasuredAt = %v, want %v", got.MeasuredAt, session.MeasuredAt)
-	}
+	require.NoError(t, err)
+	assert.True(t, got.MeasuredAt.Equal(session.MeasuredAt))
 
-	// Should not appear in May listing
 	maySessions, err := store.ListSessions(
 		time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
 		time.Date(2026, 5, 31, 23, 59, 59, 0, time.UTC),
 	)
-	if err != nil {
-		t.Fatalf("ListSessions() error: %v", err)
-	}
+	require.NoError(t, err)
+
 	for _, s := range maySessions {
-		if s.ID == session.ID {
-			t.Error("session still found in May after cross-month update")
-		}
+		assert.NotEqual(t, session.ID, s.ID, "session still found in May after cross-month update")
 	}
 }
 
@@ -149,36 +106,23 @@ func TestUpdateSessionNotFound(t *testing.T) {
 	session := makeSession(time.Date(2026, 5, 7, 9, 0, 0, 0, time.UTC))
 	session.ID = "nonexistent-id"
 
-	err := store.UpdateSession(&session)
-	if !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("UpdateSession() error = %v, want ErrSessionNotFound", err)
-	}
+	assert.ErrorIs(t, store.UpdateSession(&session), ErrSessionNotFound)
 }
 
 func TestDeleteSession(t *testing.T) {
 	store := newTestStore(t)
 	session := makeSession(time.Date(2026, 5, 7, 9, 0, 0, 0, time.UTC))
 
-	if err := store.CreateSession(&session); err != nil {
-		t.Fatalf("CreateSession() error: %v", err)
-	}
-
-	if err := store.DeleteSession(session.ID); err != nil {
-		t.Fatalf("DeleteSession() error: %v", err)
-	}
+	require.NoError(t, store.CreateSession(&session))
+	require.NoError(t, store.DeleteSession(session.ID))
 
 	_, err := store.GetSession(session.ID)
-	if !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("GetSession() after delete: error = %v, want ErrSessionNotFound", err)
-	}
+	assert.ErrorIs(t, err, ErrSessionNotFound)
 }
 
 func TestDeleteSessionNotFound(t *testing.T) {
 	store := newTestStore(t)
-	err := store.DeleteSession("nonexistent-id")
-	if !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("DeleteSession() error = %v, want ErrSessionNotFound", err)
-	}
+	assert.ErrorIs(t, store.DeleteSession("nonexistent-id"), ErrSessionNotFound)
 }
 
 func TestListSessions(t *testing.T) {
@@ -189,9 +133,7 @@ func TestListSessions(t *testing.T) {
 	jun1 := makeSession(time.Date(2026, 6, 1, 8, 0, 0, 0, time.UTC))
 
 	for _, s := range []*domain.MeasurementSession{&may7, &may15, &jun1} {
-		if err := store.CreateSession(s); err != nil {
-			t.Fatalf("CreateSession() error: %v", err)
-		}
+		require.NoError(t, store.CreateSession(s))
 	}
 
 	// List all
@@ -199,15 +141,11 @@ func TestListSessions(t *testing.T) {
 		time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
 		time.Date(2026, 6, 30, 23, 59, 59, 0, time.UTC),
 	)
-	if err != nil {
-		t.Fatalf("ListSessions() error: %v", err)
-	}
-	if len(all) != 3 {
-		t.Errorf("ListSessions(all) count = %d, want 3", len(all))
-	}
-	// Verify descending order
-	if len(all) >= 2 && all[0].MeasuredAt.Before(all[1].MeasuredAt) {
-		t.Error("ListSessions() not sorted descending by measured_at")
+	require.NoError(t, err)
+	assert.Len(t, all, 3)
+
+	if assert.Len(t, all, 3) {
+		assert.True(t, all[0].MeasuredAt.After(all[1].MeasuredAt), "not sorted descending")
 	}
 
 	// List May only
@@ -215,58 +153,35 @@ func TestListSessions(t *testing.T) {
 		time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
 		time.Date(2026, 5, 31, 23, 59, 59, 0, time.UTC),
 	)
-	if err != nil {
-		t.Fatalf("ListSessions() error: %v", err)
-	}
-	if len(mayOnly) != 2 {
-		t.Errorf("ListSessions(May) count = %d, want 2", len(mayOnly))
-	}
+	require.NoError(t, err)
+	assert.Len(t, mayOnly, 2)
 
 	// List with no matches
 	empty, err := store.ListSessions(
 		time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 		time.Date(2025, 1, 31, 23, 59, 59, 0, time.UTC),
 	)
-	if err != nil {
-		t.Fatalf("ListSessions() error: %v", err)
-	}
-	if len(empty) != 0 {
-		t.Errorf("ListSessions(empty) count = %d, want 0", len(empty))
-	}
+	require.NoError(t, err)
+	assert.Empty(t, empty)
 }
 
 func TestSettingsRoundTrip(t *testing.T) {
 	store := newTestStore(t)
 
-	// Get default settings (no file exists)
 	settings, err := store.GetSettings()
-	if err != nil {
-		t.Fatalf("GetSettings() error: %v", err)
-	}
-	if settings.PatientName != "" {
-		t.Errorf("default PatientName = %q, want empty", settings.PatientName)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, settings.PatientName)
 
-	// Save and reload
 	settings.PatientName = "Roman Hlushko"
 	settings.DefaultArm = domain.ArmLeft
 	settings.DefaultPosition = domain.PositionSitting
 
-	if err := store.SaveSettings(settings); err != nil {
-		t.Fatalf("SaveSettings() error: %v", err)
-	}
+	require.NoError(t, store.SaveSettings(settings))
 
 	got, err := store.GetSettings()
-	if err != nil {
-		t.Fatalf("GetSettings() error: %v", err)
-	}
-	if got.PatientName != "Roman Hlushko" {
-		t.Errorf("PatientName = %q, want %q", got.PatientName, "Roman Hlushko")
-	}
-	if got.DefaultArm != domain.ArmLeft {
-		t.Errorf("DefaultArm = %q, want %q", got.DefaultArm, domain.ArmLeft)
-	}
-	if got.UpdatedAt.IsZero() {
-		t.Error("UpdatedAt not set after save")
-	}
+	require.NoError(t, err)
+
+	assert.Equal(t, "Roman Hlushko", got.PatientName)
+	assert.Equal(t, domain.ArmLeft, got.DefaultArm)
+	assert.False(t, got.UpdatedAt.IsZero())
 }

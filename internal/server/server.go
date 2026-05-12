@@ -5,10 +5,25 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+
+	"github.com/roma-glushko/bp/internal/server/handlers"
+	"github.com/roma-glushko/bp/internal/storage"
 )
 
-func NewMux(frontendFS embed.FS) *http.ServeMux {
+func NewMux(frontendFS embed.FS, store storage.Store) *http.ServeMux {
 	mux := http.NewServeMux()
+
+	sessions := &handlers.SessionHandler{Store: store}
+	settings := &handlers.SettingsHandler{Store: store}
+
+	mux.HandleFunc("GET /api/sessions", sessions.List)
+	mux.HandleFunc("POST /api/sessions", sessions.Create)
+	mux.HandleFunc("GET /api/sessions/{id}", sessions.Get)
+	mux.HandleFunc("PUT /api/sessions/{id}", sessions.Update)
+	mux.HandleFunc("DELETE /api/sessions/{id}", sessions.Delete)
+
+	mux.HandleFunc("GET /api/settings", settings.Get)
+	mux.HandleFunc("PUT /api/settings", settings.Update)
 
 	distFS, err := fs.Sub(frontendFS, "dist")
 	if err != nil {
@@ -19,21 +34,19 @@ func NewMux(frontendFS embed.FS) *http.ServeMux {
 	fileServer := http.FileServer(http.FS(distFS))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Try to serve the file directly; fall back to index.html for SPA
 		path := r.URL.Path
 		if path == "/" {
 			fileServer.ServeHTTP(w, r)
 			return
 		}
 
-		// Check if file exists in the embedded FS
-		f, err := distFS.Open(path[1:]) // strip leading /
+		f, err := distFS.Open(path[1:])
 		if err != nil {
-			// File not found — serve index.html for SPA routing
 			r.URL.Path = "/"
 			fileServer.ServeHTTP(w, r)
 			return
 		}
+
 		f.Close()
 		fileServer.ServeHTTP(w, r)
 	})

@@ -3,15 +3,17 @@ package domain
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func intPtr(v int) *int { return &v }
 
 func TestValidateReading(t *testing.T) {
 	tests := []struct {
-		name      string
-		reading   Reading
-		wantErrs  int
+		name     string
+		reading  Reading
+		wantErrs int
 	}{
 		{
 			name:     "valid reading with pulse",
@@ -73,9 +75,7 @@ func TestValidateReading(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			errs := ValidateReading(tt.reading, 0)
-			if len(errs) != tt.wantErrs {
-				t.Errorf("ValidateReading() returned %d errors, want %d: %v", len(errs), tt.wantErrs, errs)
-			}
+			require.Len(t, errs, tt.wantErrs)
 		})
 	}
 }
@@ -145,9 +145,7 @@ func TestValidateSession(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			errs := ValidateSession(tt.session)
-			if len(errs) != tt.wantErrs {
-				t.Errorf("ValidateSession() returned %d errors, want %d: %v", len(errs), tt.wantErrs, errs)
-			}
+			require.Len(t, errs, tt.wantErrs)
 		})
 	}
 }

@@ -39,12 +39,12 @@ func ServeCommand(args []string) error {
 	}
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 
-	_, err := storage.NewTomlStore(*dataDir)
+	store, err := storage.NewTomlStore(*dataDir)
 	if err != nil {
 		return fmt.Errorf("initializing storage: %w", err)
 	}
 
-	mux := server.NewMux(frontend.DistFS)
+	mux := server.NewMux(frontend.DistFS, store)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", *port)
 	srv := &http.Server{
