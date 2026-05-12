@@ -12,7 +12,7 @@ type SettingsHandler struct {
 	Store storage.Store
 }
 
-func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) Get(w http.ResponseWriter, _ *http.Request) {
 	settings, err := h.Store.GetSettings()
 	if err != nil {
 		slog.Error("getting settings", "error", err)
@@ -25,6 +25,7 @@ func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var settings domain.Settings
+
 	if err := readJSON(r, &settings); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return

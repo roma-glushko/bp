@@ -59,7 +59,7 @@ func (s *TomlStore) saveMonthFile(path string, mf *domain.MonthFile) error {
 	}
 
 	if err := os.Rename(tmpPath, path); err != nil {
-		os.Remove(tmpPath)
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("renaming temp file: %w", err)
 	}
 	return nil
@@ -123,6 +123,7 @@ func (s *TomlStore) GetSession(id string) (*domain.MeasurementSession, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		for i := range mf.Sessions {
 			if mf.Sessions[i].ID == id {
 				return &mf.Sessions[i], nil
@@ -151,13 +152,16 @@ func (s *TomlStore) UpdateSession(session *domain.MeasurementSession) error {
 		if err != nil {
 			return err
 		}
+
 		for i := range mf.Sessions {
 			if mf.Sessions[i].ID == session.ID {
 				oldPath = path
 				mf.Sessions = append(mf.Sessions[:i], mf.Sessions[i+1:]...)
+
 				if err := s.saveMonthFile(path, mf); err != nil {
 					return err
 				}
+
 				break
 			}
 		}
@@ -194,6 +198,7 @@ func (s *TomlStore) DeleteSession(id string) error {
 		if err != nil {
 			return err
 		}
+
 		for i := range mf.Sessions {
 			if mf.Sessions[i].ID == id {
 				mf.Sessions = append(mf.Sessions[:i], mf.Sessions[i+1:]...)
@@ -287,7 +292,7 @@ func (s *TomlStore) SaveSettings(settings *domain.Settings) error {
 	}
 
 	if err := os.Rename(tmpPath, path); err != nil {
-		os.Remove(tmpPath)
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("renaming temp settings file: %w", err)
 	}
 	return nil

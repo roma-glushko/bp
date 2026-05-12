@@ -38,7 +38,7 @@
     <p class="text-gray-500 mb-4">This measurement session doesn't exist.</p>
     <a
       href="#/history"
-      class="text-blue-600 hover:text-blue-800 font-medium text-sm"
+      class="text-teal-600 hover:text-teal-800 font-medium text-sm"
     >
       Back to History
     </a>

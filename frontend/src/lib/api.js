@@ -52,6 +52,15 @@ export function listSessions(from, to) {
   return request('GET', `/api/sessions${qs ? '?' + qs : ''}`)
 }
 
+export function getReportPreview(from, to, sections) {
+  const params = new URLSearchParams()
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  if (sections && sections.length > 0) params.set('sections', sections.join(','))
+  const qs = params.toString()
+  return request('GET', `/api/reports/preview${qs ? '?' + qs : ''}`)
+}
+
 export function getSettings() {
   return request('GET', '/api/settings')
 }

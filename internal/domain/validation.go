@@ -23,6 +23,7 @@ func (e ValidationError) Error() string {
 
 func ValidateReading(r Reading, index int) []ValidationError {
 	var errs []ValidationError
+
 	prefix := fmt.Sprintf("readings[%d]", index)
 
 	if r.Systolic < MinSystolic || r.Systolic > MaxSystolic {

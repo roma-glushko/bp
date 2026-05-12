@@ -24,7 +24,7 @@ func newTestSettingsHandler(t *testing.T) *SettingsHandler {
 func TestGetDefaultSettings(t *testing.T) {
 	h := newTestSettingsHandler(t)
 
-	req := httptest.NewRequest("GET", "/api/settings", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/settings", nil)
 	w := httptest.NewRecorder()
 	h.Get(w, req)
 
@@ -39,18 +39,19 @@ func TestUpdateAndGetSettings(t *testing.T) {
 	h := newTestSettingsHandler(t)
 
 	body := `{"patient_name": "Roman Hlushko", "default_arm": "left", "default_position": "sitting"}`
-	req := httptest.NewRequest("PUT", "/api/settings", strings.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/settings", strings.NewReader(body))
 	w := httptest.NewRecorder()
 	h.Update(w, req)
 
 	require.Equal(t, http.StatusOK, w.Code)
 
 	// Read back
-	req = httptest.NewRequest("GET", "/api/settings", nil)
+	req = httptest.NewRequest(http.MethodGet, "/api/settings", nil)
 	w = httptest.NewRecorder()
 	h.Get(w, req)
 
 	var got domain.Settings
+
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&got))
 	assert.Equal(t, "Roman Hlushko", got.PatientName)
 	assert.Equal(t, domain.ArmLeft, got.DefaultArm)

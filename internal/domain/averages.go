@@ -3,10 +3,10 @@ package domain
 import "github.com/shopspring/decimal"
 
 type SessionAverage struct {
-	AvgSystolic  decimal.Decimal `json:"avg_systolic"`
-	AvgDiastolic decimal.Decimal `json:"avg_diastolic"`
+	AvgSystolic  decimal.Decimal  `json:"avg_systolic"`
+	AvgDiastolic decimal.Decimal  `json:"avg_diastolic"`
 	AvgPulse     *decimal.Decimal `json:"avg_pulse,omitempty"`
-	Indicator    BPIndicator     `json:"indicator"`
+	Indicator    BPIndicator      `json:"indicator"`
 }
 
 func ComputeSessionAverage(readings []Reading) SessionAverage {

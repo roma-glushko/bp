@@ -35,9 +35,9 @@ type Reading struct {
 }
 
 type MeasurementSession struct {
-	ID        string    `toml:"id" json:"id"`
+	ID         string    `toml:"id" json:"id"`
 	MeasuredAt time.Time `toml:"measured_at" json:"measured_at"`
-	Period    Period    `toml:"period" json:"period"`
+	Period     Period    `toml:"period" json:"period"`
 
 	Arm          Arm      `toml:"arm,omitempty" json:"arm,omitempty"`
 	Position     Position `toml:"position,omitempty" json:"position,omitempty"`
@@ -59,10 +59,10 @@ type MonthFile struct {
 }
 
 type Settings struct {
-	PatientName     string   `toml:"patient_name" json:"patient_name"`
-	DefaultArm      Arm      `toml:"default_arm" json:"default_arm"`
-	DefaultPosition Position `toml:"default_position" json:"default_position"`
-	DeviceName      string   `toml:"device_name" json:"device_name"`
+	PatientName     string    `toml:"patient_name" json:"patient_name"`
+	DefaultArm      Arm       `toml:"default_arm" json:"default_arm"`
+	DefaultPosition Position  `toml:"default_position" json:"default_position"`
+	DeviceName      string    `toml:"device_name" json:"device_name"`
 	UpdatedAt       time.Time `toml:"updated_at" json:"updated_at"`
 }
 

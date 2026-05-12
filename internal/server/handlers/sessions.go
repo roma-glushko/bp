@@ -138,8 +138,11 @@ func (h *SessionHandler) Update(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusNotFound, "session not found")
 			return
 		}
+
 		slog.Error("updating session", "error", err)
+
 		writeError(w, http.StatusInternalServerError, "failed to update session")
+
 		return
 	}
 
@@ -154,8 +157,11 @@ func (h *SessionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusNotFound, "session not found")
 			return
 		}
+
 		slog.Error("deleting session", "error", err)
+
 		writeError(w, http.StatusInternalServerError, "failed to delete session")
+
 		return
 	}
 

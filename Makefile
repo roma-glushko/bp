@@ -18,7 +18,7 @@ install-tools: ## Install static checkers & other binaries
 	@echo "🚚 Downloading tools.."
 	@GOBIN=$(BIN_DIR) go install mvdan.cc/gofumpt@latest
 	@GOBIN=$(BIN_DIR) go install github.com/air-verse/air@latest
-	@GOBIN=$(BIN_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@GOTOOLCHAIN=go1.26.3 GOBIN=$(BIN_DIR) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	@GOBIN=$(BIN_DIR) go install github.com/g4s8/envdoc@latest
 	@GOBIN=$(BIN_DIR) go install github.com/denis-tingaikin/go-header/cmd/go-header@latest
 	@GOBIN=$(BIN_DIR) go install github.com/goreleaser/goreleaser/v2@latest

@@ -37,7 +37,7 @@
     <div class="flex gap-3 justify-center">
       <button
         onclick={reset}
-        class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+        class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 transition-colors"
       >
         Add Another
       </button>

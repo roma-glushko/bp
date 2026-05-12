@@ -36,13 +36,15 @@ const validSessionJSON = `{
 
 func createSession(t *testing.T, h *SessionHandler) sessionResponse {
 	t.Helper()
-	req := httptest.NewRequest("POST", "/api/sessions", strings.NewReader(validSessionJSON))
+	req := httptest.NewRequest(http.MethodPost, "/api/sessions", strings.NewReader(validSessionJSON))
 	w := httptest.NewRecorder()
 	h.Create(w, req)
 	require.Equal(t, http.StatusCreated, w.Code)
 
 	var resp sessionResponse
+
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+
 	return resp
 }
 
@@ -60,13 +62,14 @@ func TestCreateSessionInvalid(t *testing.T) {
 	h := newTestHandler(t)
 
 	body := `{"period": "morning", "readings": []}`
-	req := httptest.NewRequest("POST", "/api/sessions", strings.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/sessions", strings.NewReader(body))
 	w := httptest.NewRecorder()
 	h.Create(w, req)
 
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 
 	var resp map[string]any
+
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
 	assert.Contains(t, resp, "errors")
 }
@@ -74,7 +77,7 @@ func TestCreateSessionInvalid(t *testing.T) {
 func TestCreateSessionBadJSON(t *testing.T) {
 	h := newTestHandler(t)
 
-	req := httptest.NewRequest("POST", "/api/sessions", strings.NewReader("not json"))
+	req := httptest.NewRequest(http.MethodPost, "/api/sessions", strings.NewReader("not json"))
 	w := httptest.NewRecorder()
 	h.Create(w, req)
 
@@ -85,13 +88,14 @@ func TestListSessions(t *testing.T) {
 	h := newTestHandler(t)
 	createSession(t, h)
 
-	req := httptest.NewRequest("GET", "/api/sessions?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/sessions?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z", nil)
 	w := httptest.NewRecorder()
 	h.List(w, req)
 
 	require.Equal(t, http.StatusOK, w.Code)
 
 	var resp listResponse
+
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
 	assert.Len(t, resp.Sessions, 1)
 }
@@ -99,7 +103,7 @@ func TestListSessions(t *testing.T) {
 func TestListSessionsDefaultRange(t *testing.T) {
 	h := newTestHandler(t)
 
-	req := httptest.NewRequest("GET", "/api/sessions", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/sessions", nil)
 	w := httptest.NewRecorder()
 	h.List(w, req)
 
@@ -113,13 +117,14 @@ func TestGetSession(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/sessions/{id}", h.Get)
 
-	req := httptest.NewRequest("GET", "/api/sessions/"+created.ID, nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/sessions/"+created.ID, nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusOK, w.Code)
 
 	var got sessionResponse
+
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&got))
 	assert.Equal(t, created.ID, got.ID)
 }
@@ -130,7 +135,7 @@ func TestGetSessionNotFound(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/sessions/{id}", h.Get)
 
-	req := httptest.NewRequest("GET", "/api/sessions/nonexistent", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/sessions/nonexistent", nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
@@ -153,13 +158,14 @@ func TestUpdateSession(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("PUT /api/sessions/{id}", h.Update)
 
-	req := httptest.NewRequest("PUT", "/api/sessions/"+created.ID, strings.NewReader(updatedJSON))
+	req := httptest.NewRequest(http.MethodPut, "/api/sessions/"+created.ID, strings.NewReader(updatedJSON))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusOK, w.Code)
 
 	var resp sessionResponse
+
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
 	assert.Equal(t, "updated", resp.Notes)
 	assert.Len(t, resp.Readings, 1)
@@ -174,14 +180,14 @@ func TestDeleteSession(t *testing.T) {
 	mux.HandleFunc("DELETE /api/sessions/{id}", h.Delete)
 	mux.HandleFunc("GET /api/sessions/{id}", h.Get)
 
-	req := httptest.NewRequest("DELETE", "/api/sessions/"+created.ID, nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/sessions/"+created.ID, nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusNoContent, w.Code)
 
 	// Verify gone
-	req = httptest.NewRequest("GET", "/api/sessions/"+created.ID, nil)
+	req = httptest.NewRequest(http.MethodGet, "/api/sessions/"+created.ID, nil)
 	w = httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
@@ -194,7 +200,7 @@ func TestDeleteSessionNotFound(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("DELETE /api/sessions/{id}", h.Delete)
 
-	req := httptest.NewRequest("DELETE", "/api/sessions/nonexistent", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/sessions/nonexistent", nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 

@@ -9,6 +9,7 @@ type Config struct {
 
 func DefaultConfig() Config {
 	dataDir, _ := DataDir()
+
 	return Config{
 		Port:    7391,
 		DataDir: dataDir,

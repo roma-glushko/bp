@@ -15,6 +15,7 @@ func NewMux(frontendFS embed.FS, store storage.Store) *http.ServeMux {
 
 	sessions := &handlers.SessionHandler{Store: store}
 	settings := &handlers.SettingsHandler{Store: store}
+	reports := &handlers.ReportHandler{Store: store}
 
 	mux.HandleFunc("GET /api/sessions", sessions.List)
 	mux.HandleFunc("POST /api/sessions", sessions.Create)
@@ -24,6 +25,8 @@ func NewMux(frontendFS embed.FS, store storage.Store) *http.ServeMux {
 
 	mux.HandleFunc("GET /api/settings", settings.Get)
 	mux.HandleFunc("PUT /api/settings", settings.Update)
+
+	mux.HandleFunc("GET /api/reports/preview", reports.Preview)
 
 	distFS, err := fs.Sub(frontendFS, "dist")
 	if err != nil {
@@ -44,10 +47,11 @@ func NewMux(frontendFS embed.FS, store storage.Store) *http.ServeMux {
 		if err != nil {
 			r.URL.Path = "/"
 			fileServer.ServeHTTP(w, r)
+
 			return
 		}
 
-		f.Close()
+		_ = f.Close()
 		fileServer.ServeHTTP(w, r)
 	})
 

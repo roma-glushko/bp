@@ -37,6 +37,7 @@ func ServeCommand(args []string) error {
 	if *debug {
 		level = slog.LevelDebug
 	}
+
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 
 	store, err := storage.NewTomlStore(*dataDir)
@@ -62,7 +63,7 @@ func ServeCommand(args []string) error {
 	slog.Debug("server configured", "port", *port, "data_dir", *dataDir, "no_open", *noOpen)
 
 	if !*noOpen {
-		openBrowser(fmt.Sprintf("http://%s", addr))
+		openBrowser("http://" + addr)
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -86,6 +87,7 @@ func ServeCommand(args []string) error {
 
 func openBrowser(url string) {
 	var cmd string
+
 	switch runtime.GOOS {
 	case "darwin":
 		cmd = "open"

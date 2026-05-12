@@ -29,7 +29,7 @@
         placeholder="SYS"
         min="70"
         max="250"
-        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
           {sysInvalid || sysLessDia ? 'border-red-400 bg-red-50' : 'border-gray-300'}"
       />
     </div>
@@ -40,7 +40,7 @@
         placeholder="DIA"
         min="40"
         max="150"
-        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
           {diaInvalid || sysLessDia ? 'border-red-400 bg-red-50' : 'border-gray-300'}"
       />
     </div>
@@ -51,13 +51,13 @@
         placeholder="Pulse"
         min="30"
         max="220"
-        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
           {pulseInvalid ? 'border-red-400 bg-red-50' : 'border-gray-300'}"
       />
     </div>
   </div>
 
-  <div class="w-24 flex items-center">
+  <div class="hidden sm:flex w-24 items-center">
     {#if indicator}
       <BPIndicator {...indicator} />
     {/if}

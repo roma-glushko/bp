@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import ReadingRow from './ReadingRow.svelte'
   import BPIndicator from './BPIndicator.svelte'
   import { classifyBP } from './bp.js'
@@ -73,9 +73,16 @@
     }
   })
 
-  function addReading() {
+  let readingsContainer
+
+  async function addReading() {
     if (readings.length < 10) {
       readings = [...readings, emptyReading()]
+      await tick()
+      const inputs = readingsContainer?.querySelectorAll('input[type="number"]')
+      if (inputs?.length) {
+        inputs[inputs.length - 3]?.focus()
+      }
     }
   }
 
@@ -146,7 +153,7 @@
         id="date"
         type="date"
         bind:value={date}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
       />
     </div>
     <div>
@@ -155,18 +162,18 @@
         id="time"
         type="time"
         bind:value={time}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
       />
     </div>
   </div>
 
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>
       <label for="period" class="block text-sm font-medium text-gray-700 mb-1">Period</label>
       <select
         id="period"
         bind:value={period}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
       >
         <option value="morning">Morning</option>
         <option value="evening">Evening</option>
@@ -178,7 +185,7 @@
       <select
         id="arm"
         bind:value={arm}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
       >
         <option value="left">Left</option>
         <option value="right">Right</option>
@@ -189,7 +196,7 @@
       <select
         id="position"
         bind:value={position}
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
       >
         <option value="sitting">Sitting</option>
         <option value="lying">Lying</option>
@@ -211,7 +218,7 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2 mb-2 text-xs text-gray-400 pl-8">
+    <div class="hidden sm:flex items-center gap-2 mb-2 text-xs text-gray-400 pl-8">
       <div class="flex-1 grid grid-cols-3 gap-2">
         <span>SYS</span>
         <span>DIA</span>
@@ -221,7 +228,7 @@
       <div class="w-8"></div>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-2" bind:this={readingsContainer}>
       {#each readings as reading, i}
         <ReadingRow
           {reading}
@@ -236,7 +243,7 @@
       <button
         type="button"
         onclick={addReading}
-        class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+        class="mt-2 text-sm text-teal-600 hover:text-teal-800 font-medium"
       >
         + Add another reading
       </button>
@@ -250,15 +257,15 @@
       bind:value={notes}
       rows="3"
       placeholder="Optional notes about this session..."
-      class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
     ></textarea>
   </div>
 
   <button
     type="submit"
     disabled={submitting}
-    class="w-full py-2.5 px-4 bg-blue-600 text-white rounded-md text-sm font-medium
-      hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    class="w-full py-2.5 px-4 bg-teal-600 text-white rounded-md text-sm font-medium
+      hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
   >
     {submitting ? 'Saving...' : submitLabel}
   </button>

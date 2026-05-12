@@ -29,9 +29,11 @@ func EnsureDataDir(dataDir string) error {
 	if err := os.MkdirAll(dataDir, 0o750); err != nil {
 		return fmt.Errorf("creating data directory: %w", err)
 	}
+
 	if err := os.MkdirAll(SessionsDir(dataDir), 0o750); err != nil {
 		return fmt.Errorf("creating sessions directory: %w", err)
 	}
+
 	return nil
 }
 
