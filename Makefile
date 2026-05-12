@@ -50,7 +50,7 @@ frontend-install: ## Install frontend dependencies
 	@cd frontend && npm install
 
 .PHONY: frontend-build
-frontend-build: ## Build frontend assets
+frontend-build: frontend-install ## Build frontend assets
 	@echo "🔨Building frontend.."
 	@cd frontend && npm run build
 

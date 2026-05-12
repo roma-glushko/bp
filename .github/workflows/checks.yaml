@@ -104,5 +104,10 @@ jobs:
         with:
           go-version: '1.26.3'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Build The Shop Binary
         run:  make build
