@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import BPIndicator from '../lib/BPIndicator.svelte'
+  import BPTrendChart from '../lib/BPTrendChart.svelte'
   import { listSessions } from '../lib/api.js'
   import { classifyBP } from '../lib/bp.js'
 
@@ -9,6 +10,7 @@
   let lastSession = $state(null)
   let weekAvg = $state(null)
   let monthAvg = $state(null)
+  let allSessions = $state([])
 
   function startOfDay(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate())
@@ -42,7 +44,7 @@
       monthAgo.setDate(monthAgo.getDate() - 30)
 
       const resp = await listSessions(monthAgo.toISOString(), now.toISOString())
-      const allSessions = resp.sessions || []
+      allSessions = resp.sessions || []
 
       if (allSessions.length > 0) {
         lastSession = allSessions[0]
@@ -150,6 +152,13 @@
         </div>
       {/if}
     </div>
+
+    {#if allSessions.length > 1}
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">30-Day Trend</h2>
+        <BPTrendChart sessions={allSessions} />
+      </div>
+    {/if}
 
     {#if todaySessions.length > 0}
       <div>
