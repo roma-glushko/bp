@@ -99,6 +99,6 @@ type WeeklyNote struct {
 }
 
 type NotesFile struct {
-	DailyNotes  []DailyNote  `toml:"daily_notes"`
-	WeeklyNotes []WeeklyNote `toml:"weekly_notes"`
+	DailyNotes  []DailyNote  `toml:"daily_notes" json:"daily_notes"`
+	WeeklyNotes []WeeklyNote `toml:"weekly_notes" json:"weekly_notes"`
 }
