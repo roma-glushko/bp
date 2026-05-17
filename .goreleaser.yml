@@ -237,7 +237,7 @@ homebrew_casks:
 
     directory: Casks
 
-    caveats: "frens --help"
+    caveats: "bp --help"
     homepage: "https://github.com/roma-glushko/bp"
     description: "A blood pressure journal"
 
@@ -246,7 +246,7 @@ homebrew_casks:
         # We don't have a certificate to sign the app, so we have to remove the quarantine attribute
         install: |
           if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/frens"]
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/bp"]
           end
 
     # Repository to push the generated files to.
