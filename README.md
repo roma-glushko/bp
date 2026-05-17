@@ -4,6 +4,13 @@ A blood pressure journal
 
 ## Installation
 
+### Homebrew
+
+```bash
+brew tap roma-glushko/bp https://github.com/roma-glushko/bp
+brew install bp
+```
+
 ### From Source
 
 ```bash
