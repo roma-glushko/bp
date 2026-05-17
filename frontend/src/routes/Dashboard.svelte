@@ -8,6 +8,7 @@
   let todaySessions = $state([])
   let lastSession = $state(null)
   let weekAvg = $state(null)
+  let monthAvg = $state(null)
 
   function startOfDay(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate())
@@ -23,35 +24,39 @@
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
   }
 
+  function computeAvg(sessions) {
+    if (sessions.length === 0) return null
+    const avgSys = Math.round(sessions.reduce((s, x) => s + Number(x.average.avg_systolic), 0) / sessions.length)
+    const avgDia = Math.round(sessions.reduce((s, x) => s + Number(x.average.avg_diastolic), 0) / sessions.length)
+    const withPulse = sessions.filter(x => x.average.avg_pulse)
+    const avgPulse = withPulse.length > 0
+      ? Math.round(withPulse.reduce((s, x) => s + Number(x.average.avg_pulse), 0) / withPulse.length)
+      : null
+    return { avgSys, avgDia, avgPulse, count: sessions.length, indicator: classifyBP(avgSys, avgDia) }
+  }
+
   onMount(async () => {
     try {
       const now = new Date()
-      const weekAgo = new Date(now)
-      weekAgo.setDate(weekAgo.getDate() - 7)
+      const monthAgo = new Date(now)
+      monthAgo.setDate(monthAgo.getDate() - 30)
 
-      const resp = await listSessions(weekAgo.toISOString(), now.toISOString())
-      const sessions = resp.sessions || []
+      const resp = await listSessions(monthAgo.toISOString(), now.toISOString())
+      const allSessions = resp.sessions || []
 
-      if (sessions.length > 0) {
-        lastSession = sessions[0]
+      if (allSessions.length > 0) {
+        lastSession = allSessions[0]
       }
 
       const todayStart = startOfDay(now)
-      todaySessions = sessions.filter(s => new Date(s.measured_at) >= todayStart)
+      todaySessions = allSessions.filter(s => new Date(s.measured_at) >= todayStart)
 
-      if (sessions.length > 0) {
-        const totalSys = sessions.reduce((sum, s) => sum + Number(s.average.avg_systolic), 0)
-        const totalDia = sessions.reduce((sum, s) => sum + Number(s.average.avg_diastolic), 0)
-        const avgSys = Math.round(totalSys / sessions.length)
-        const avgDia = Math.round(totalDia / sessions.length)
+      const weekAgo = new Date(now)
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      const weekSessions = allSessions.filter(s => new Date(s.measured_at) >= weekAgo)
 
-        const pulseSessions = sessions.filter(s => s.average.avg_pulse)
-        const avgPulse = pulseSessions.length > 0
-          ? Math.round(pulseSessions.reduce((sum, s) => sum + Number(s.average.avg_pulse), 0) / pulseSessions.length)
-          : null
-
-        weekAvg = { avgSys, avgDia, avgPulse, indicator: classifyBP(avgSys, avgDia) }
-      }
+      weekAvg = computeAvg(weekSessions)
+      monthAvg = computeAvg(allSessions)
     } catch {
       // API not available — show empty state
     } finally {
@@ -87,7 +92,7 @@
       </a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Last Reading</p>
         <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
@@ -128,6 +133,20 @@
           <div class="mt-1">
             <BPIndicator {...weekAvg.indicator} />
           </div>
+        </div>
+      {/if}
+
+      {#if monthAvg}
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">30-Day Average</p>
+          <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{monthAvg.avgSys} / {monthAvg.avgDia}</p>
+          {#if monthAvg.avgPulse}
+            <p class="text-sm text-gray-500 dark:text-gray-400">Pulse {monthAvg.avgPulse}</p>
+          {/if}
+          <div class="mt-1">
+            <BPIndicator {...monthAvg.indicator} />
+          </div>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">{monthAvg.count} session{monthAvg.count !== 1 ? 's' : ''}</p>
         </div>
       {/if}
     </div>
