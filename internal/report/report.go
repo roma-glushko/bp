@@ -82,7 +82,7 @@ func buildReadingEntries(sessions []domain.MeasurementSession) []ReadingEntry {
 	return entries
 }
 
-func Generate(sessions []domain.MeasurementSession, patient, device, from, to, generated string, sec Sections) Report {
+func Generate(sessions []domain.MeasurementSession, annotations *domain.NotesFile, patient, device, from, to, generated string, sec Sections) Report {
 	r := Report{
 		From:      from,
 		To:        to,
@@ -92,6 +92,18 @@ func Generate(sessions []domain.MeasurementSession, patient, device, from, to, g
 	}
 
 	dayAvgs := ComputeDayAverages(sessions)
+
+	if annotations != nil && sec.Notes {
+		dayNoteMap := make(map[string]string, len(annotations.DailyNotes))
+		for _, dn := range annotations.DailyNotes {
+			dayNoteMap[dn.Date] = dn.Notes
+		}
+		for i := range dayAvgs {
+			if n, ok := dayNoteMap[dayAvgs[i].Date]; ok {
+				dayAvgs[i].DayNote = n
+			}
+		}
+	}
 
 	if sec.Summary {
 		s := ComputeSummary(sessions)
@@ -104,6 +116,17 @@ func Generate(sessions []domain.MeasurementSession, patient, device, from, to, g
 
 	if sec.WeekAverages {
 		r.WeekAverages = ComputeWeekAverages(dayAvgs)
+		if annotations != nil && sec.Notes {
+			weekNoteMap := make(map[string]string, len(annotations.WeeklyNotes))
+			for _, wn := range annotations.WeeklyNotes {
+				weekNoteMap[wn.Week] = wn.Notes
+			}
+			for i := range r.WeekAverages {
+				if n, ok := weekNoteMap[r.WeekAverages[i].Week]; ok {
+					r.WeekAverages[i].Notes = n
+				}
+			}
+		}
 	}
 
 	if sec.DayAverages {
@@ -111,6 +134,7 @@ func Generate(sessions []domain.MeasurementSession, patient, device, from, to, g
 		if !sec.Notes {
 			for i := range r.DayAverages {
 				r.DayAverages[i].Notes = nil
+				r.DayAverages[i].DayNote = ""
 			}
 		}
 	}

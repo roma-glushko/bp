@@ -61,6 +61,30 @@ export function getReportPreview(from, to, sections) {
   return request('GET', `/api/reports/preview${qs ? '?' + qs : ''}`)
 }
 
+export function listAnnotations(from, to) {
+  const params = new URLSearchParams()
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  const qs = params.toString()
+  return request('GET', `/api/annotations${qs ? '?' + qs : ''}`)
+}
+
+export function upsertDailyNote(date, notes) {
+  return request('PUT', `/api/annotations/daily/${date}`, { notes })
+}
+
+export function deleteDailyNote(date) {
+  return request('DELETE', `/api/annotations/daily/${date}`)
+}
+
+export function upsertWeeklyNote(week, notes) {
+  return request('PUT', `/api/annotations/weekly/${week}`, { notes })
+}
+
+export function deleteWeeklyNote(week) {
+  return request('DELETE', `/api/annotations/weekly/${week}`)
+}
+
 export function getSettings() {
   return request('GET', '/api/settings')
 }

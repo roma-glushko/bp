@@ -103,8 +103,11 @@ func (h *ReportHandler) Preview(w http.ResponseWriter, r *http.Request) {
 		device = settings.DeviceName
 	}
 
+	annotations, _ := h.Store.ListAnnotations(from, to)
+
 	rpt := report.Generate(
 		sessions,
+		annotations,
 		patient,
 		device,
 		from.Format("2006-01-02"),

@@ -30,12 +30,19 @@ func NewMux(frontendFS embed.FS, store storage.Store) *http.ServeMux {
 	sessions := &handlers.SessionHandler{Store: store}
 	settings := &handlers.SettingsHandler{Store: store}
 	reports := &handlers.ReportHandler{Store: store}
+	annotations := &handlers.AnnotationHandler{Store: store}
 
 	mux.HandleFunc("GET /api/sessions", sessions.List)
 	mux.HandleFunc("POST /api/sessions", sessions.Create)
 	mux.HandleFunc("GET /api/sessions/{id}", sessions.Get)
 	mux.HandleFunc("PUT /api/sessions/{id}", sessions.Update)
 	mux.HandleFunc("DELETE /api/sessions/{id}", sessions.Delete)
+
+	mux.HandleFunc("GET /api/annotations", annotations.List)
+	mux.HandleFunc("PUT /api/annotations/daily/{date}", annotations.UpsertDaily)
+	mux.HandleFunc("DELETE /api/annotations/daily/{date}", annotations.DeleteDaily)
+	mux.HandleFunc("PUT /api/annotations/weekly/{week}", annotations.UpsertWeekly)
+	mux.HandleFunc("DELETE /api/annotations/weekly/{week}", annotations.DeleteWeekly)
 
 	mux.HandleFunc("GET /api/settings", settings.Get)
 	mux.HandleFunc("PUT /api/settings", settings.Update)

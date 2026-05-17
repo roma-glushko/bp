@@ -83,3 +83,22 @@ type Settings struct {
 type SettingsFile struct {
 	Settings Settings `toml:"settings"`
 }
+
+type DailyNote struct {
+	Date      string    `toml:"date" json:"date"`
+	Notes     string    `toml:"notes" json:"notes"`
+	CreatedAt time.Time `toml:"created_at" json:"created_at"`
+	UpdatedAt time.Time `toml:"updated_at" json:"updated_at"`
+}
+
+type WeeklyNote struct {
+	Week      string    `toml:"week" json:"week"`
+	Notes     string    `toml:"notes" json:"notes"`
+	CreatedAt time.Time `toml:"created_at" json:"created_at"`
+	UpdatedAt time.Time `toml:"updated_at" json:"updated_at"`
+}
+
+type NotesFile struct {
+	DailyNotes  []DailyNote  `toml:"daily_notes"`
+	WeeklyNotes []WeeklyNote `toml:"weekly_notes"`
+}

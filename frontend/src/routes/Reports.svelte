@@ -261,6 +261,11 @@
                   <td>{w.days}</td>
                   <td><BPIndicator {...w.average.indicator} /><span class="hidden print:inline"> ({w.average.indicator.label})</span></td>
                 </tr>
+                {#if w.notes}
+                  <tr class="border-b border-gray-100 dark:border-gray-700">
+                    <td colspan="5" class="py-1 text-sm text-gray-500 dark:text-gray-400 italic pl-4">{w.notes}</td>
+                  </tr>
+                {/if}
               {/each}
             </tbody>
           </table>
@@ -289,6 +294,15 @@
                   <td>{d.sessions}</td>
                   <td><BPIndicator {...d.average.indicator} /><span class="hidden print:inline"> ({d.average.indicator.label})</span></td>
                 </tr>
+                {#if d.day_note || (d.notes && d.notes.length > 0)}
+                  <tr class="border-b border-gray-100 dark:border-gray-700">
+                    <td colspan="5" class="py-1 text-sm text-gray-500 dark:text-gray-400 italic pl-4">
+                      {#if d.day_note}{d.day_note}{/if}
+                      {#if d.day_note && d.notes?.length > 0} · {/if}
+                      {#if d.notes?.length > 0}{d.notes.join(' · ')}{/if}
+                    </td>
+                  </tr>
+                {/if}
               {/each}
             </tbody>
           </table>

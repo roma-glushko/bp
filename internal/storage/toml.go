@@ -267,6 +267,190 @@ func (s *TomlStore) ListSessions(from, to time.Time) ([]domain.MeasurementSessio
 	return result, nil
 }
 
+func (s *TomlStore) loadNotesFile() (*domain.NotesFile, error) {
+	path := config.NotesPath(s.dataDir)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &domain.NotesFile{}, nil
+		}
+		return nil, fmt.Errorf("reading notes file: %w", err)
+	}
+
+	var nf domain.NotesFile
+	if err := toml.Unmarshal(data, &nf); err != nil {
+		return nil, fmt.Errorf("parsing notes file: %w", err)
+	}
+	return &nf, nil
+}
+
+func (s *TomlStore) saveNotesFile(nf *domain.NotesFile) error {
+	path := config.NotesPath(s.dataDir)
+	data, err := toml.Marshal(nf)
+	if err != nil {
+		return fmt.Errorf("marshaling notes file: %w", err)
+	}
+
+	tmpPath := path + ".tmp"
+	if err := os.WriteFile(tmpPath, data, 0o640); err != nil {
+		return fmt.Errorf("writing temp notes file: %w", err)
+	}
+
+	if err := os.Rename(tmpPath, path); err != nil {
+		_ = os.Remove(tmpPath)
+		return fmt.Errorf("renaming temp notes file: %w", err)
+	}
+	return nil
+}
+
+func isoWeekRange(week string) (start, end time.Time, err error) {
+	var year, w int
+	if _, err := fmt.Sscanf(week, "%d-W%d", &year, &w); err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("invalid week format: %s", week)
+	}
+
+	jan4 := time.Date(year, 1, 4, 0, 0, 0, 0, time.UTC)
+	_, jan4Week := jan4.ISOWeek()
+	start = jan4.AddDate(0, 0, (w-jan4Week)*7-int(jan4.Weekday()-time.Monday))
+	if jan4.Weekday() == time.Sunday {
+		start = start.AddDate(0, 0, -6)
+	}
+	end = start.AddDate(0, 0, 6)
+	return start, end, nil
+}
+
+func (s *TomlStore) ListAnnotations(from, to time.Time) (*domain.NotesFile, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	nf, err := s.loadNotesFile()
+	if err != nil {
+		return nil, err
+	}
+
+	fromDate := from.Format("2006-01-02")
+	toDate := to.Format("2006-01-02")
+
+	var dailyNotes []domain.DailyNote
+	for _, dn := range nf.DailyNotes {
+		if dn.Date >= fromDate && dn.Date <= toDate {
+			dailyNotes = append(dailyNotes, dn)
+		}
+	}
+
+	var weeklyNotes []domain.WeeklyNote
+	for _, wn := range nf.WeeklyNotes {
+		wStart, wEnd, err := isoWeekRange(wn.Week)
+		if err != nil {
+			continue
+		}
+		if !wEnd.Before(from) && !wStart.After(to) {
+			weeklyNotes = append(weeklyNotes, wn)
+		}
+	}
+
+	return &domain.NotesFile{
+		DailyNotes:  dailyNotes,
+		WeeklyNotes: weeklyNotes,
+	}, nil
+}
+
+func (s *TomlStore) UpsertDailyNote(note *domain.DailyNote) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	nf, err := s.loadNotesFile()
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+	found := false
+	for i := range nf.DailyNotes {
+		if nf.DailyNotes[i].Date == note.Date {
+			nf.DailyNotes[i].Notes = note.Notes
+			nf.DailyNotes[i].UpdatedAt = now
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		note.CreatedAt = now
+		note.UpdatedAt = now
+		nf.DailyNotes = append(nf.DailyNotes, *note)
+	}
+
+	return s.saveNotesFile(nf)
+}
+
+func (s *TomlStore) DeleteDailyNote(date string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	nf, err := s.loadNotesFile()
+	if err != nil {
+		return err
+	}
+
+	for i := range nf.DailyNotes {
+		if nf.DailyNotes[i].Date == date {
+			nf.DailyNotes = append(nf.DailyNotes[:i], nf.DailyNotes[i+1:]...)
+			return s.saveNotesFile(nf)
+		}
+	}
+
+	return nil
+}
+
+func (s *TomlStore) UpsertWeeklyNote(note *domain.WeeklyNote) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	nf, err := s.loadNotesFile()
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+	found := false
+	for i := range nf.WeeklyNotes {
+		if nf.WeeklyNotes[i].Week == note.Week {
+			nf.WeeklyNotes[i].Notes = note.Notes
+			nf.WeeklyNotes[i].UpdatedAt = now
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		note.CreatedAt = now
+		note.UpdatedAt = now
+		nf.WeeklyNotes = append(nf.WeeklyNotes, *note)
+	}
+
+	return s.saveNotesFile(nf)
+}
+
+func (s *TomlStore) DeleteWeeklyNote(week string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	nf, err := s.loadNotesFile()
+	if err != nil {
+		return err
+	}
+
+	for i := range nf.WeeklyNotes {
+		if nf.WeeklyNotes[i].Week == week {
+			nf.WeeklyNotes = append(nf.WeeklyNotes[:i], nf.WeeklyNotes[i+1:]...)
+			return s.saveNotesFile(nf)
+		}
+	}
+
+	return nil
+}
+
 func (s *TomlStore) GetSettings() (*domain.Settings, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

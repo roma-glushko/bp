@@ -32,4 +32,10 @@ type Store interface {
 
 	GetSettings() (*domain.Settings, error)
 	SaveSettings(settings *domain.Settings) error
+
+	ListAnnotations(from, to time.Time) (*domain.NotesFile, error)
+	UpsertDailyNote(note *domain.DailyNote) error
+	DeleteDailyNote(date string) error
+	UpsertWeeklyNote(note *domain.WeeklyNote) error
+	DeleteWeeklyNote(week string) error
 }

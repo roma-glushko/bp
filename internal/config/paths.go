@@ -59,6 +59,10 @@ func SettingsPath(dataDir string) string {
 	return filepath.Join(dataDir, "settings.toml")
 }
 
+func NotesPath(dataDir string) string {
+	return filepath.Join(dataDir, "notes.toml")
+}
+
 func MonthFileName(t time.Time) string {
 	return t.Format("2006-01") + ".toml"
 }

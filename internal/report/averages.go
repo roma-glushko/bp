@@ -37,12 +37,14 @@ type DayAverage struct {
 	Average  PeriodAverage `json:"average"`
 	Sessions int           `json:"sessions"`
 	Notes    []string      `json:"notes,omitempty"`
+	DayNote  string        `json:"day_note,omitempty"`
 }
 
 type WeekAverage struct {
 	Week    string        `json:"week"`
 	Average PeriodAverage `json:"average"`
 	Days    int           `json:"days"`
+	Notes   string        `json:"notes,omitempty"`
 }
 
 type MonthAverage struct {
