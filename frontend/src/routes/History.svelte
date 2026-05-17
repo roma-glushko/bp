@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import BPIndicator from '../lib/BPIndicator.svelte'
+  import CalendarView from '../lib/CalendarView.svelte'
   import { listSessions, deleteSession, listAnnotations, upsertDailyNote, upsertWeeklyNote } from '../lib/api.js'
   import { classifyBP } from '../lib/bp.js'
 
@@ -13,6 +14,7 @@
   let fromDate = $state('')
   let toDate = $state('')
 
+  let viewMode = $state('list')
   let dailyNotes = $state({})
   let weeklyNotes = $state({})
   let editingDayNote = $state(null)
@@ -86,6 +88,24 @@
   }
 
   let weekGroups = $derived(groupByWeekAndDay(sessions))
+
+  let calendarDayData = $derived.by(() => {
+    const map = {}
+    for (const s of sessions) {
+      const key = dayKey(s.measured_at)
+      if (!map[key]) map[key] = { sysList: [], diaList: [], sessions: 0 }
+      map[key].sysList.push(Number(s.average.avg_systolic))
+      map[key].diaList.push(Number(s.average.avg_diastolic))
+      map[key].sessions++
+    }
+    const result = {}
+    for (const [key, d] of Object.entries(map)) {
+      const avgSys = Math.round(d.sysList.reduce((a, b) => a + b, 0) / d.sysList.length)
+      const avgDia = Math.round(d.diaList.reduce((a, b) => a + b, 0) / d.diaList.length)
+      result[key] = { avgSys, avgDia, sessions: d.sessions }
+    }
+    return result
+  })
 
   async function loadSessions() {
     loading = true
@@ -193,12 +213,34 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">History</h1>
-    <a
-      href="#/measurements/new"
-      class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 transition-colors"
-    >
-      Add Reading
-    </a>
+    <div class="flex items-center gap-2">
+      <div class="flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
+        <button
+          onclick={() => viewMode = 'list'}
+          class="px-2.5 py-1.5 text-sm transition-colors {viewMode === 'list' ? 'bg-teal-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}"
+          title="List view"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <button
+          onclick={() => viewMode = 'calendar'}
+          class="px-2.5 py-1.5 text-sm transition-colors {viewMode === 'calendar' ? 'bg-teal-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}"
+          title="Calendar view"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </button>
+      </div>
+      <a
+        href="#/measurements/new"
+        class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 transition-colors"
+      >
+        Add Reading
+      </a>
+    </div>
   </div>
 
   <div class="flex items-end gap-3">
@@ -236,6 +278,64 @@
     <div class="text-center py-12">
       <p class="text-gray-500 dark:text-gray-400">No sessions found in this date range.</p>
     </div>
+  {:else if viewMode === 'calendar'}
+    <CalendarView
+      dayData={calendarDayData}
+      {dailyNotes}
+      {weeklyNotes}
+      onEditDayNote={startEditDayNote}
+      onEditWeekNote={startEditWeekNote}
+    />
+    {#if editingDayNote}
+      <div class="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Note for {editingDayNote}</p>
+        <textarea
+          bind:value={editNoteText}
+          rows="2"
+          class="w-full px-3 py-1.5 border border-teal-300 dark:border-teal-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
+          placeholder="Day note..."
+        ></textarea>
+        <div class="flex gap-2 mt-1">
+          <button
+            onclick={() => saveDayNote(editingDayNote)}
+            class="px-2 py-1 bg-teal-600 text-white rounded text-xs font-medium hover:bg-teal-700"
+          >
+            Save
+          </button>
+          <button
+            onclick={cancelEditNote}
+            class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    {/if}
+    {#if editingWeekNote}
+      <div class="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Note for {editingWeekNote}</p>
+        <textarea
+          bind:value={editNoteText}
+          rows="2"
+          class="w-full px-3 py-1.5 border border-teal-300 dark:border-teal-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-700 dark:text-gray-100"
+          placeholder="Week note..."
+        ></textarea>
+        <div class="flex gap-2 mt-1">
+          <button
+            onclick={() => saveWeekNote(editingWeekNote)}
+            class="px-2 py-1 bg-teal-600 text-white rounded text-xs font-medium hover:bg-teal-700"
+          >
+            Save
+          </button>
+          <button
+            onclick={cancelEditNote}
+            class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    {/if}
   {:else}
     <div class="space-y-8">
       {#each weekGroups as weekGroup}
