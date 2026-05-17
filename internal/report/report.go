@@ -82,6 +82,43 @@ func buildReadingEntries(sessions []domain.MeasurementSession) []ReadingEntry {
 	return entries
 }
 
+func applyDailyNotes(dayAvgs []DayAverage, annotations *domain.NotesFile) {
+	if annotations == nil {
+		return
+	}
+	noteMap := make(map[string]string, len(annotations.DailyNotes))
+	for _, dn := range annotations.DailyNotes {
+		noteMap[dn.Date] = dn.Notes
+	}
+	for i := range dayAvgs {
+		if n, ok := noteMap[dayAvgs[i].Date]; ok {
+			dayAvgs[i].DayNote = n
+		}
+	}
+}
+
+func applyWeeklyNotes(weekAvgs []WeekAverage, annotations *domain.NotesFile) {
+	if annotations == nil {
+		return
+	}
+	noteMap := make(map[string]string, len(annotations.WeeklyNotes))
+	for _, wn := range annotations.WeeklyNotes {
+		noteMap[wn.Week] = wn.Notes
+	}
+	for i := range weekAvgs {
+		if n, ok := noteMap[weekAvgs[i].Week]; ok {
+			weekAvgs[i].Notes = n
+		}
+	}
+}
+
+func stripNotes(dayAvgs []DayAverage) {
+	for i := range dayAvgs {
+		dayAvgs[i].Notes = nil
+		dayAvgs[i].DayNote = ""
+	}
+}
+
 func Generate(sessions []domain.MeasurementSession, annotations *domain.NotesFile, patient, device, from, to, generated string, sec Sections) Report {
 	r := Report{
 		From:      from,
@@ -93,16 +130,8 @@ func Generate(sessions []domain.MeasurementSession, annotations *domain.NotesFil
 
 	dayAvgs := ComputeDayAverages(sessions)
 
-	if annotations != nil && sec.Notes {
-		dayNoteMap := make(map[string]string, len(annotations.DailyNotes))
-		for _, dn := range annotations.DailyNotes {
-			dayNoteMap[dn.Date] = dn.Notes
-		}
-		for i := range dayAvgs {
-			if n, ok := dayNoteMap[dayAvgs[i].Date]; ok {
-				dayAvgs[i].DayNote = n
-			}
-		}
+	if sec.Notes {
+		applyDailyNotes(dayAvgs, annotations)
 	}
 
 	if sec.Summary {
@@ -116,26 +145,15 @@ func Generate(sessions []domain.MeasurementSession, annotations *domain.NotesFil
 
 	if sec.WeekAverages {
 		r.WeekAverages = ComputeWeekAverages(dayAvgs)
-		if annotations != nil && sec.Notes {
-			weekNoteMap := make(map[string]string, len(annotations.WeeklyNotes))
-			for _, wn := range annotations.WeeklyNotes {
-				weekNoteMap[wn.Week] = wn.Notes
-			}
-			for i := range r.WeekAverages {
-				if n, ok := weekNoteMap[r.WeekAverages[i].Week]; ok {
-					r.WeekAverages[i].Notes = n
-				}
-			}
+		if sec.Notes {
+			applyWeeklyNotes(r.WeekAverages, annotations)
 		}
 	}
 
 	if sec.DayAverages {
 		r.DayAverages = dayAvgs
 		if !sec.Notes {
-			for i := range r.DayAverages {
-				r.DayAverages[i].Notes = nil
-				r.DayAverages[i].DayNote = ""
-			}
+			stripNotes(r.DayAverages)
 		}
 	}
 
