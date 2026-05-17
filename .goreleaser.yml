@@ -188,3 +188,69 @@ release:
       - [Github Discussions](https://github.com/roma-glushko/bp/discussions)
       - [Github Issues](https://github.com/roma-glushko/bp/issues)
 
+
+
+homebrew_casks:
+  -
+    name: bp
+
+    # Binary name inside the cask
+    #
+    # Default: the cask name.
+    # Templates: allowed.
+    binaries: [bp]
+
+    # This information will be used to build the URL section of your Cask.
+    #
+    # You can set the template, as well as additional parameters.
+    # These parameters can be used to provide extra headers, cookies, or other
+    # download requirements for your application.
+    # See https://docs.brew.sh/Cask-Cookbook#additional-url-parameters for more details.
+    #
+    # All fields are optional.
+    url:
+      # URL which is determined by the given Token (github, gitlab or gitea).
+      #
+      # Default depends on the client.
+      # Templates: allowed.
+      template: "https://github.com/roma-glushko/bp/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+
+      verified: "github.com/roma-glushko/bp/"
+
+      # Download strategy or format specification
+      # See official Cask Cookbook for allowed values.
+      # Templates: allowed.
+      using: ":homebrew_curl"
+
+      user_agent: "Homebrew/1.0 (macOS)"
+
+    # Git author used to commit to the repository.
+    # Templates: allowed.
+    commit_author:
+      name: goreleaser
+      email: bot@goreleaser.com
+
+    # The project name and current git tag are used in the format string.
+    #
+    # Templates: allowed.
+    commit_msg_template: "📦 Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
+
+    directory: Casks
+
+    caveats: "frens --help"
+    homepage: "https://github.com/roma-glushko/bp"
+    description: "A blood pressure journal"
+
+    hooks:
+      post:
+        # We don't have a certificate to sign the app, so we have to remove the quarantine attribute
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/frens"]
+          end
+
+    # Repository to push the generated files to.
+    repository:
+      owner: roma-glushko
+      name: bp
+      branch: main
